@@ -22,7 +22,7 @@ void test_server() {
 
 		//const char* msg = "This is a server relply message!";
 		const char* msg = "12345";
-		printf("CXKcpServer send:'%s', len=%d\r\n", msg, strlen(msg));
+		printf("CXKcpServer send:'%s', len=%d.\r\n", msg, strlen(msg));
 		client->send(msg, (int)strlen(msg));
 	}
 }
@@ -43,7 +43,7 @@ void test_client() {
 
 	char buffer[1500] = { 0 };
 	int len = c.recv(buffer, sizeof(buffer));
-	printf("CXKcpClient recv:'%s', len=%d", buffer, len);
+	printf("CXKcpClient recv:'%s', len=%d.", buffer, len);
 }
 
 int main(int argc, char *argv[])
@@ -55,8 +55,11 @@ int main(int argc, char *argv[])
 	std::thread server(test_server);
 	
 	// 创建Client线程
-	std::thread client(test_client);
-	client.join();
+	while (true) {
+		std::thread client(test_client);
+		client.join();
+		Sleep(3000);
+	}
 
 	server.join();
 	return 0;

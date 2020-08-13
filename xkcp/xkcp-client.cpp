@@ -52,9 +52,6 @@ CXKcpClient::CXKcpClient(int mode) {
 
 CXKcpClient::~CXKcpClient() {
 	close();
-	if (th_.joinable()) {
-		th_.join();
-	}
 }
 
 //---------------------------------------------------------------------
@@ -240,6 +237,10 @@ int CXKcpClient::recv(char* data, int len) {
 }
 
 void CXKcpClient::close() {
+	is_connected_ = false;
+	if (th_.joinable()) {
+		th_.join();
+	}
 	if (kcp_) {
 		ikcp_release(kcp_);
 		kcp_ = nullptr;
