@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "ikcp.h"
 #include "xkcp.h"
 #include <map>
@@ -59,9 +59,9 @@ private:
 	int send_direct(const char* data, int len);
 	int input_data(char* buffer, int len);
 
-	// ·µ»Ø0 ÎŞĞèÆäËû´¦Àí
-	// ·µ»Ø1 ±íÊ¾½¨Á¢Á¬½Ó£¬ĞèÒªCXKcpServer ·µ»Ø accept³É¹¦
-	// ·µ»Ø-1 ±íÊ¾³ö´í£¬¶ÏµôÁ¬½Ó£¬ÊÍ·Åµôµ±Ç°¶ÔÏó
+	// è¿”å›0 æ— éœ€å…¶ä»–å¤„ç†
+	// è¿”å›1 è¡¨ç¤ºå»ºç«‹è¿æ¥ï¼Œéœ€è¦CXKcpServer è¿”å› acceptæˆåŠŸ
+	// è¿”å›-1 è¡¨ç¤ºå‡ºé”™ï¼Œæ–­æ‰è¿æ¥ï¼Œé‡Šæ”¾æ‰å½“å‰å¯¹è±¡
 	int dispatch(char* buffer, int len);
 
 	bool is_connected_ = false;

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 enum eXkcpMode {
 	xkcp_mode_default = 0,
@@ -7,11 +7,11 @@ enum eXkcpMode {
 };
 
 enum eXkcpEventType {
-	xkcp_connect = 0,		// ĞÂÁ¬½Ó
-	xkcp_new_conv,			// ·şÎñÆ÷¶ËÖØĞÂ·ÖÅäconv
-	xkcp_disconnect,		// ¶Ï¿ªÁ¬½Ó
-	xkcp_heart_beat,		// ĞÄÌø
-	xkcp_msg,				// Êı¾İ
+	xkcp_connect = 0,    // æ–°è¿æ¥
+	xkcp_new_conv,       // æœåŠ¡å™¨ç«¯é‡æ–°åˆ†é…conv
+	xkcp_disconnect,     // æ–­å¼€è¿æ¥
+	xkcp_heart_beat,     // å¿ƒè·³
+	xkcp_msg,            // æ•°æ®
 };
 
 void xkcp_init();

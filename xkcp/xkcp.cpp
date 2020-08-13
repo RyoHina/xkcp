@@ -1,4 +1,4 @@
-#include "xkcp.h"
+﻿#include "xkcp.h"
 #include <winsock2.h>
 #include <mmsystem.h>
 #pragma comment(lib,"winmm.lib")

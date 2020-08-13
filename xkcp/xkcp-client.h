@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ikcp.h"
 #include "xkcp.h"
 #include <string>
