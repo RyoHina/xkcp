@@ -1,7 +1,7 @@
 ﻿#include "xkcp-client.h"
 
 // 发送一个 udp 包
-int CXKcpClient::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
+/* static */ int CXKcpClient::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
 {
 	CXKcpClient *client = (CXKcpClient *)user;
 	sendto(client->sock_,
