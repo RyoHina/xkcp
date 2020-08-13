@@ -1,6 +1,6 @@
-#include "xkcp-server.h"
+ï»¿#include "xkcp-server.h"
 
-// ·¢ËÍÒ»¸ö udp°ü
+// å‘é€ä¸€ä¸ª udpåŒ…
 int XKcpSession::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
 {
 	XKcpSession *session = (XKcpSession *)user;
@@ -21,21 +21,21 @@ XKcpSession::XKcpSession(IUINT32 conv, int mode) {
 	kcp_->output = &XKcpSession::udp_output;
 	ikcp_wndsize(kcp_, 128, 128);
 
-	// ÅĞ¶Ï²âÊÔÓÃÀıµÄÄ£Ê½
+	// åˆ¤æ–­æµ‹è¯•ç”¨ä¾‹çš„æ¨¡å¼
 	if (mode == xkcp_mode_default) {
-		// Ä¬ÈÏÄ£Ê½
+		// é»˜è®¤æ¨¡å¼
 		ikcp_nodelay(kcp_, 0, 10, 0, 0);
 	}
 	else if (mode == xkcp_mode_normal) {
-		// ÆÕÍ¨Ä£Ê½£¬¹Ø±ÕÁ÷¿ØµÈ
+		// æ™®é€šæ¨¡å¼ï¼Œå…³é—­æµæ§ç­‰
 		ikcp_nodelay(kcp_, 0, 10, 0, 1);
 	}
 	else {
-		// Æô¶¯¿ìËÙÄ£Ê½
-		// µÚ¶ş¸ö²ÎÊı nodelay-ÆôÓÃÒÔºóÈô¸É³£¹æ¼ÓËÙ½«Æô¶¯
-		// µÚÈı¸ö²ÎÊı intervalÎªÄÚ²¿´¦ÀíÊ±ÖÓ£¬Ä¬ÈÏÉèÖÃÎª 10ms
-		// µÚËÄ¸ö²ÎÊı resendÎª¿ìËÙÖØ´«Ö¸±ê£¬ÉèÖÃÎª2
-		// µÚÎå¸ö²ÎÊı ÎªÊÇ·ñ½ûÓÃ³£¹æÁ÷¿Ø£¬ÕâÀï½ûÖ¹
+		// å¯åŠ¨å¿«é€Ÿæ¨¡å¼
+		// ç¬¬äºŒä¸ªå‚æ•° nodelay-å¯ç”¨ä»¥åè‹¥å¹²å¸¸è§„åŠ é€Ÿå°†å¯åŠ¨
+		// ç¬¬ä¸‰ä¸ªå‚æ•° intervalä¸ºå†…éƒ¨å¤„ç†æ—¶é’Ÿï¼Œé»˜è®¤è®¾ç½®ä¸º 10ms
+		// ç¬¬å››ä¸ªå‚æ•° resendä¸ºå¿«é€Ÿé‡ä¼ æŒ‡æ ‡ï¼Œè®¾ç½®ä¸º2
+		// ç¬¬äº”ä¸ªå‚æ•° ä¸ºæ˜¯å¦ç¦ç”¨å¸¸è§„æµæ§ï¼Œè¿™é‡Œç¦æ­¢
 		ikcp_nodelay(kcp_, 2, 10, 2, 1);
 		kcp_->rx_minrto = 10;
 		kcp_->fastresend = 1;
@@ -76,7 +76,6 @@ int XKcpSession::send_direct(const char* data, int len) {
 	}
 	return ikcp_send(kcp_, data, len);
 }
-
 
 int XKcpSession::recv(char* data, int len) {
 	while (is_connected_) {
@@ -125,35 +124,35 @@ int XKcpSession::input_data(char* buffer, int len) {
 }
 
 
-// ·µ»Ø0 ÎŞĞèÆäËû´¦Àí
-// ·µ»Ø1 ±íÊ¾½¨Á¢Á¬½Ó£¬ĞèÒªCXKcpServer ·µ»Ø accept³É¹¦
-// ·µ»Ø-1 ±íÊ¾³ö´í£¬ÊÍ·Åµôµ±Ç°¶ÔÏó
+// è¿”å›0 æ— éœ€å…¶ä»–å¤„ç†
+// è¿”å›1 è¡¨ç¤ºå»ºç«‹è¿æ¥ï¼Œéœ€è¦CXKcpServer è¿”å› acceptæˆåŠŸ
+// è¿”å›-1 è¡¨ç¤ºå‡ºé”™ï¼Œé‡Šæ”¾æ‰å½“å‰å¯¹è±¡
 int XKcpSession::dispatch(char* buffer, int len) {
 	unsigned char type = buffer[0];
 
-	// ĞÂÁ¬½Ó
+	// æ–°è¿æ¥
 	if (type == xkcp_connect) {
 		assert(len == 1);
-		// Êı¾İ´íÂÒÁË£¬ÒÑ½¨Á¢Á¬½Ó²»Ó¦¸ÃÊÕµ½xkcp_connect
+		// æ•°æ®é”™ä¹±äº†ï¼Œå·²å»ºç«‹è¿æ¥ä¸åº”è¯¥æ”¶åˆ°xkcp_connect
 		if (is_connected_) {
 			is_connected_ = false;
 			return -1;
 		}
 
+		is_connected_ = true;
 		char conn = xkcp_connect;
 		send_direct(&conn, 1);
-		is_connected_ = true;
 		return 1;
 	}
 
-	// ¶Ï¿ªÁ¬½Ó
+	// æ–­å¼€è¿æ¥
 	if (type == xkcp_disconnect) {
 		assert(len == 1);
 		is_connected_ = false;
 		return -1;
 	}
 
-	// ĞÄÌø
+	// å¿ƒè·³
 	if (type == xkcp_heart_beat) {
 		assert(len == 1);
 		if (!is_connected_) {
@@ -164,7 +163,7 @@ int XKcpSession::dispatch(char* buffer, int len) {
 		return 0;
 	}
 
-	// Êı¾İ
+	// æ•°æ®
 	if (type == xkcp_msg) {
 		assert(len > 1);
 		if (!is_connected_) {
@@ -210,7 +209,7 @@ int CXKcpServer::listen(unsigned short port) {
 		return -1;
 	}
 
-	//°ó¶¨µØÖ·ĞÅÏ¢
+	//ç»‘å®šåœ°å€ä¿¡æ¯
 	struct sockaddr_in cli_addr = { 0 };
 	cli_addr.sin_family = AF_INET;
 	cli_addr.sin_port = htons(port);
@@ -222,7 +221,7 @@ int CXKcpServer::listen(unsigned short port) {
 		return -1;
 	}
 
-	// ÉèÖÃÎª·Ç×èÈûÄ£Ê½
+	// è®¾ç½®ä¸ºéé˜»å¡æ¨¡å¼
 	unsigned long ul = 1;
 	int ret = ioctlsocket(sock_, FIONBIO, (unsigned long *)&ul);
 	if (ret == SOCKET_ERROR) {
@@ -230,7 +229,7 @@ int CXKcpServer::listen(unsigned short port) {
 		return -1;
 	}
 
-	// ¿ªÆôÏß³Ì, ´¦ÀíÊı¾İÊÕ·¢
+	// å¼€å¯çº¿ç¨‹, å¤„ç†æ•°æ®æ”¶å‘
 	th_ = std::thread([this] {
 		while (true) {
 			Sleep(1);
@@ -256,7 +255,7 @@ int CXKcpServer::listen(unsigned short port) {
 			}
 
 			IUINT32 conv = ikcp_getconv(buffer);
-			// ĞèÒªÖØĞÂÅäÖÃconv
+			// éœ€è¦é‡æ–°é…ç½®conv
 			if (conv == 0) {
 				zeroSession_->set_socket(sock_);
 				zeroSession_->set_client_addr(&servAddr);
@@ -272,24 +271,24 @@ int CXKcpServer::listen(unsigned short port) {
 				mapSessions_[conv] = new XKcpSession(conv, mode_);
 			}
 
-			// ÉèÖÃsocketºÍaddr
+			// è®¾ç½®socketå’Œaddr
 			mapSessions_[conv]->set_socket(sock_);
 			mapSessions_[conv]->set_client_addr(&servAddr);
 			int hr = mapSessions_[conv]->input_data(buffer, iRet);
 
-			// ĞÂ½¨Á¢Á¬½Ó
+			// å»ºç«‹æ–°è¿æ¥
 			if (hr == 1) {
 				std::lock_guard<std::mutex> lc(acceptSessionMutex_);
 				acceptSession_[mapSessions_[conv]] = 0;
 			}
 
-			// ³ö´íÊÍ·ÅÁ¬½Ó
+			// å‡ºé”™ï¼Œé‡Šæ”¾è¿æ¥
 			if (hr == -1) {
 				auto ptr = mapSessions_[conv];
 				delete mapSessions_[conv];
 				mapSessions_.erase(conv);
 
-				// Èô»¹Î´accept
+				// è‹¥è¿˜æœªacceptçš„sessionï¼Œéœ€è¦æ¸…ç†æ‰
 				std::lock_guard<std::mutex> lc(acceptSessionMutex_);
 				acceptSession_.erase(ptr);
 			}

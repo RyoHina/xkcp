@@ -11,15 +11,17 @@ void test_server() {
 	s.listen(8888);
 	while (true) {
 		auto client = s.accept();
+		printf("CXKcpServer accept new socket.\r\n");
 		char buffer[1500] = { 0 };
 		hr = client->recv(buffer, sizeof(buffer));
 		if (hr <= 0) {
 			printf("test_server() bad client recv.");
 			return;
 		}
-		printf("test_server() client recv:%s, len=%d.", buffer, hr);
+		printf("CXKcpServer recv:%s, len=%d.\r\n", buffer, hr);
 
 		const char* msg = "this is server relply message.";
+		printf("CXKcpServer send:%s\r\n", msg);
 		client->send(msg, (int)strlen(msg));
 	}
 }
@@ -31,12 +33,16 @@ void test_client() {
 		printf("connect failed.");
 		return;
 	}
+	else {
+		printf("CXKcpClient connect OK\r\n");
+	}
 
+	printf("CXKcpClient send 'hello'\r\n");
 	c.send("hello", 5);
 
-	char buffer[20] = { 0 };
-	int len = c.recv(buffer, 20);
-	printf("recv:%s len=%d", buffer, len);
+	char buffer[1500] = { 0 };
+	int len = c.recv(buffer, sizeof(buffer));
+	printf("CXKcpClient recv:%s len=%d", buffer, len);
 }
 
 int main(int argc, char *argv[])

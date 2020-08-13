@@ -1,6 +1,6 @@
-#include "xkcp-client.h"
+ï»¿#include "xkcp-client.h"
 
-// ·¢ËÍÒ»¸ö udp°ü
+// å‘é€ä¸€ä¸ª udpåŒ…
 int CXKcpClient::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
 {
 	CXKcpClient *client = (CXKcpClient *)user;
@@ -22,28 +22,28 @@ void CXKcpClient::renew_kcp() {
 	kcp_->output = &CXKcpClient::udp_output;
 	ikcp_wndsize(kcp_, 128, 128);
 
-	// ÅĞ¶Ï²âÊÔÓÃÀıµÄÄ£Ê½
+	// åˆ¤æ–­æµ‹è¯•ç”¨ä¾‹çš„æ¨¡å¼
 	if (mode == xkcp_mode_default) {
-		// Ä¬ÈÏÄ£Ê½
+		// é»˜è®¤æ¨¡å¼
 		ikcp_nodelay(kcp_, 0, 10, 0, 0);
 	}
 	else if (mode == xkcp_mode_normal) {
-		// ÆÕÍ¨Ä£Ê½£¬¹Ø±ÕÁ÷¿ØµÈ
+		// æ™®é€šæ¨¡å¼ï¼Œå…³é—­æµæ§ç­‰
 		ikcp_nodelay(kcp_, 0, 10, 0, 1);
 	}
 	else {
-		// Æô¶¯¿ìËÙÄ£Ê½
-		// µÚ¶ş¸ö²ÎÊı nodelay-ÆôÓÃÒÔºóÈô¸É³£¹æ¼ÓËÙ½«Æô¶¯
-		// µÚÈı¸ö²ÎÊı intervalÎªÄÚ²¿´¦ÀíÊ±ÖÓ£¬Ä¬ÈÏÉèÖÃÎª 10ms
-		// µÚËÄ¸ö²ÎÊı resendÎª¿ìËÙÖØ´«Ö¸±ê£¬ÉèÖÃÎª2
-		// µÚÎå¸ö²ÎÊı ÎªÊÇ·ñ½ûÓÃ³£¹æÁ÷¿Ø£¬ÕâÀï½ûÖ¹
+		// å¯åŠ¨å¿«é€Ÿæ¨¡å¼
+		// ç¬¬äºŒä¸ªå‚æ•° nodelay-å¯ç”¨ä»¥åè‹¥å¹²å¸¸è§„åŠ é€Ÿå°†å¯åŠ¨
+		// ç¬¬ä¸‰ä¸ªå‚æ•° intervalä¸ºå†…éƒ¨å¤„ç†æ—¶é’Ÿï¼Œé»˜è®¤è®¾ç½®ä¸º 10ms
+		// ç¬¬å››ä¸ªå‚æ•° resendä¸ºå¿«é€Ÿé‡ä¼ æŒ‡æ ‡ï¼Œè®¾ç½®ä¸º2
+		// ç¬¬äº”ä¸ªå‚æ•° ä¸ºæ˜¯å¦ç¦ç”¨å¸¸è§„æµæ§ï¼Œè¿™é‡Œç¦æ­¢
 		ikcp_nodelay(kcp_, 2, 10, 2, 1);
 		kcp_->rx_minrto = 10;
 		kcp_->fastresend = 1;
 	}
 }
 
-// mode=0 Ä¬ÈÏÄ£Ê½£¬mode=1 ÆÕÍ¨Ä£Ê½ mode=2¿ìËÙÄ£Ê½
+// mode=0 é»˜è®¤æ¨¡å¼ï¼Œmode=1 æ™®é€šæ¨¡å¼ mode=2å¿«é€Ÿæ¨¡å¼
 CXKcpClient::CXKcpClient(int mode) {
 	mode_ = mode;
 	connect_timeout_ms_ = 5000;
@@ -70,7 +70,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 		return -1;
 	}
 
-	// ÉèÖÃÎª·Ç×èÈûÄ£Ê½
+	// è®¾ç½®ä¸ºéé˜»å¡æ¨¡å¼
 	unsigned long ul = 1;
 	int ret = ioctlsocket(sock_, FIONBIO, (unsigned long *)&ul);
 	if (ret == SOCKET_ERROR) {
@@ -78,12 +78,12 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 		return -1;
 	}
 
-	// ÉèÖÃ·şÎñÆ÷µØÖ·ºÍ¶Ë¿Ú
+	// è®¾ç½®æœåŠ¡å™¨åœ°å€å’Œç«¯å£
 	server_addr_.sin_family = AF_INET;
 	server_addr_.sin_port = ::htons(port);
 	server_addr_.sin_addr.S_un.S_addr = ::inet_addr(ip);
 
-	// ·¢ËÍÁ¬½ÓÊı¾İ
+	// å‘é€è¿æ¥æ•°æ®
 	char type = xkcp_connect;
 	ikcp_send(kcp_, &type, 1);
 
@@ -105,7 +105,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 		}
 		ikcp_update(kcp_, now);
 
-		// ½ÓÊÕµ½ĞÂÊı¾İ
+		// æ¥æ”¶åˆ°æ–°æ•°æ®
 		while (true) {
 			int iFromLen = sizeof(sockaddr_in);
 			sockaddr_in servAddr = {};
@@ -119,7 +119,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 			ikcp_input(kcp_, buffer, hr);
 		}
 
-		// ´Ókcp»ñÈ¡Êı¾İ
+		// ä»kcpè·å–æ•°æ®
 		while (true) {
 			hr = ikcp_recv(kcp_, buffer, sizeof(buffer));
 			if (hr <= 0) break;
@@ -128,13 +128,13 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 			if (hr == 5 && buffer[0] == xkcp_new_conv) {
 				conv_ = *(IUINT32*)(buffer + 1);
 				renew_kcp();
-				// ÖØĞÂ·¢ËÍÁ¬½ÓÊı¾İ
+				// é‡æ–°å‘é€è¿æ¥æ•°æ®
 				char type = xkcp_connect;
 				ikcp_send(kcp_, &type, 1);
 				break;
 			}
 
-			// Á¬½Ó½¨Á¢³É¹¦
+			// è¿æ¥å»ºç«‹æˆåŠŸ
 			if (hr == 1 && buffer[0] == xkcp_connect) {
 				is_connected_ = true;
 				break;
@@ -152,13 +152,14 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 		th_ = std::thread([this] {
 			int hr;
 			char buffer[1500] = { 0 };
-			// ĞÄÌø°ü¼ì²â~~~
+			// å¿ƒè·³åŒ…æ£€æµ‹~~~
 			DWORD dwRecvTimeout = timeGetTime() + recv_timeout_ms_;
 			while (is_connected_) {
 				Sleep(3);
 				DWORD now = timeGetTime();
 				// timeout~~
 				if (now >= dwRecvTimeout) {
+					printf("client timeout!\r\n");
 					renew_kcp();
 					closesocket(sock_);
 					is_connected_ = false;
@@ -170,7 +171,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 				}
 				ikcp_update(kcp_, now);
 
-				// ½ÓÊÕµ½ĞÂÊı¾İ
+				// æ¥æ”¶åˆ°æ–°æ•°æ®
 				while (true) {
 					int iFromLen = sizeof(sockaddr_in);
 					sockaddr_in servAddr = {};
@@ -195,7 +196,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 
 int CXKcpClient::send(const char* data, int len) {
 	if (!is_connected_) {
-		return -555;
+		return -1;
 	}
 
 	char buffer[1500] = { 0 };
