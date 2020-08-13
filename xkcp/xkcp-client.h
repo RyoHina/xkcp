@@ -11,8 +11,10 @@ public:
 	CXKcpClient(int mode = xkcp_mode_fast);
 	~CXKcpClient();
 
-	// sync functions
 	void set_connect_timeout(int ms);
+	void set_heart_beat_timeout(int ms);
+
+	// sync functions
 	int connect(const char*ip, unsigned short port);
 	int send(const char* data, int len);
 	int recv(char* data, int len);
@@ -27,7 +29,7 @@ private:
 	int mode_;
 	void renew_kcp();
 	int connect_timeout_ms_ = 5000;
-	int recv_timeout_ms_ = 30 * 1000;
+	int heart_beat_timeout_ms_ = 30 * 1000;
 
 	bool is_connected_ = false;
 	std::thread th_;

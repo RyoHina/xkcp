@@ -54,13 +54,18 @@ CXKcpClient::~CXKcpClient() {
 	close();
 }
 
-//---------------------------------------------------------------------
-// sync functions
-//---------------------------------------------------------------------
 void CXKcpClient::set_connect_timeout(int ms) {
 	connect_timeout_ms_ = ms;
 }
 
+void CXKcpClient::set_heart_beat_timeout(int ms) {
+	heart_beat_timeout_ms_ = ms;
+}
+
+
+//---------------------------------------------------------------------
+// sync functions
+//---------------------------------------------------------------------
 int CXKcpClient::connect(const char* ip, unsigned short port) {
 	sock_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (INVALID_SOCKET == sock_) {
@@ -150,7 +155,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 			int hr;
 			char buffer[1500] = { 0 };
 			// 心跳包检测~~~
-			DWORD dwRecvTimeout = timeGetTime() + recv_timeout_ms_;
+			DWORD dwRecvTimeout = timeGetTime() + heart_beat_timeout_ms_;
 			while (is_connected_) {
 				Sleep(3);
 				DWORD now = timeGetTime();
@@ -180,7 +185,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 						&iFromLen);
 					if (hr <= 0) break;
 					ikcp_input(kcp_, buffer, hr);
-					dwRecvTimeout = timeGetTime() + recv_timeout_ms_;
+					dwRecvTimeout = timeGetTime() + heart_beat_timeout_ms_;
 				}
 			}
 		});
