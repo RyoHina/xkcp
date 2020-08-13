@@ -1,7 +1,11 @@
 ﻿#include "xkcp-server.h"
 
+
+//---------------------------------------------------------------------
+// XKcpSession
+//---------------------------------------------------------------------
 // 发送一个 udp包
-int XKcpSession::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
+/* static */ int XKcpSession::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
 {
 	XKcpSession *session = (XKcpSession *)user;
 	sendto(session->sock_,
@@ -79,31 +83,18 @@ int XKcpSession::send_direct(const char* data, int len) {
 
 int XKcpSession::recv(char* data, int len) {
 	while (is_connected_) {
-		Sleep(1);
-		int hr = ikcp_recv(kcp_, data, len);
-		if (hr == -3) {
-			return -3; // buffer too small
-		}
-		if (hr <= 0) continue;
-
-		if (data[0] == xkcp_disconnect) {
-			assert(len == 1);
-			is_connected_ = false;
-			return -1;
-		}
-
-		if (data[0] == xkcp_heart_beat) {
-			assert(len == 1);
+		Sleep(5);
+		std::lock_guard<std::mutex> lock_(recvDataMutex_);
+		if (recvData_.empty()) {
 			continue;
 		}
-
-		if (data[0] == xkcp_msg) {
-			assert(len > 1);
-			memcpy(data, data + 1, hr - 1);
-			return hr - 1;
+		auto s = recvData_.front();
+		if (s.length() > (std::size_t)len) {
+			return -3; // buffer too small
 		}
-		assert(false);
-		return -1;
+		recvData_.pop_front();
+		memcpy(data, s.c_str(), s.length());
+		return (int)s.length();
 	}
 
 	// timeout
@@ -169,7 +160,7 @@ int XKcpSession::dispatch(char* buffer, int len) {
 		if (!is_connected_) {
 			return -1;
 		}
-		ikcp_input(kcp_, buffer + 1, len - 1);
+		add_recv_data(std::string(buffer + 1, len - 1));
 		return 0;
 	}
 
@@ -186,6 +177,15 @@ void XKcpSession::set_client_addr(sockaddr_in* addr) {
 	memcpy(&client_addr_, addr, sizeof(sockaddr_in));
 }
 
+void XKcpSession::add_recv_data(const std::string&data) {
+	std::lock_guard<std::mutex> lc(recvDataMutex_);
+	recvData_.push_back(data);
+}
+
+
+//---------------------------------------------------------------------
+// CXKcpServer
+//---------------------------------------------------------------------
 CXKcpServer::CXKcpServer(int mode) {
 	mode_ = mode;
 	zeroSession_ = new XKcpSession(0, mode_);

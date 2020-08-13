@@ -18,10 +18,11 @@ void test_server() {
 			printf("test_server() bad client recv.");
 			return;
 		}
-		printf("CXKcpServer recv:%s, len=%d.\r\n", buffer, hr);
+		printf("CXKcpServer recv:'%s', len=%d.\r\n", buffer, hr);
 
-		const char* msg = "this is server relply message.";
-		printf("CXKcpServer send:%s\r\n", msg);
+		//const char* msg = "This is a server relply message!";
+		const char* msg = "12345";
+		printf("CXKcpServer send:'%s', len=%d\r\n", msg, strlen(msg));
 		client->send(msg, (int)strlen(msg));
 	}
 }
@@ -34,15 +35,15 @@ void test_client() {
 		return;
 	}
 	else {
-		printf("CXKcpClient connect OK\r\n");
+		printf("CXKcpClient connect OK.\r\n");
 	}
 
-	printf("CXKcpClient send 'hello'\r\n");
+	printf("CXKcpClient send 'hello', len=5.\r\n");
 	c.send("hello", 5);
 
 	char buffer[1500] = { 0 };
 	int len = c.recv(buffer, sizeof(buffer));
-	printf("CXKcpClient recv:%s len=%d", buffer, len);
+	printf("CXKcpClient recv:'%s', len=%d", buffer, len);
 }
 
 int main(int argc, char *argv[])

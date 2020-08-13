@@ -2,6 +2,7 @@
 #include "ikcp.h"
 #include "xkcp.h"
 #include <map>
+#include <list>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -69,5 +70,10 @@ private:
 
 	SOCKET sock_ = INVALID_SOCKET;
 	sockaddr_in client_addr_;
+
+	std::mutex recvDataMutex_;
+	std::list<std::string> recvData_;
+	void add_recv_data(const std::string&data);
+
 	static int udp_output(const char *buf, int len, ikcpcb *kcp, void *user);
 };

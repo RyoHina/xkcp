@@ -207,7 +207,7 @@ int CXKcpClient::send(const char* data, int len) {
 
 int CXKcpClient::recv(char* data, int len) {
 	while (is_connected_) {
-		Sleep(1);
+		Sleep(5);
 		int hr = ikcp_recv(kcp_, data, len);
 		if (hr == -3) {
 			return -3; // buffer too small
@@ -228,6 +228,7 @@ int CXKcpClient::recv(char* data, int len) {
 		if (data[0] == xkcp_msg) {
 			assert(len > 1);
 			memcpy(data, data + 1, hr - 1);
+			data[hr - 1] = '\0';
 			return hr - 1;
 		}
 		assert(false);
