@@ -4,10 +4,10 @@
 //---------------------------------------------------------------------
 // XKcpSession
 //---------------------------------------------------------------------
-// 发送一个 udp包
-/* static */ int XKcpSession::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
+// 发送一个 udp 包
+/* static */ int CXKcpSession::udp_output(const char *buf, int len, ikcpcb *kcp, void *user)
 {
-	XKcpSession *session = (XKcpSession *)user;
+	CXKcpSession *session = (CXKcpSession *)user;
 	sendto(session->sock_,
 		(char*)buf,
 		len,
@@ -17,12 +17,12 @@
 	return 0;
 }
 
-XKcpSession::XKcpSession(IUINT32 conv, int mode) {
+CXKcpSession::CXKcpSession(IUINT32 conv, int mode) {
 	if (kcp_) {
 		ikcp_release(kcp_);
 	}
 	kcp_ = ikcp_create(conv, (void*)this);
-	kcp_->output = &XKcpSession::udp_output;
+	kcp_->output = &CXKcpSession::udp_output;
 	ikcp_wndsize(kcp_, 128, 128);
 
 	// 判断测试用例的模式
@@ -46,13 +46,15 @@ XKcpSession::XKcpSession(IUINT32 conv, int mode) {
 	}
 }
 
-XKcpSession::~XKcpSession() {
+CXKcpSession::~CXKcpSession() {
+	is_connected_ = false;
 	if (kcp_) {
 		ikcp_release(kcp_);
+		kcp_ = nullptr;
 	}
 }
 
-void XKcpSession::update() {
+void CXKcpSession::update() {
 	if (kcp_ && is_connected_) {
 		auto now = timeGetTime();
 		if (ikcp_check(kcp_, now) > now) {
@@ -62,8 +64,7 @@ void XKcpSession::update() {
 	}
 }
 
-
-int XKcpSession::send(const char* data, int len) {
+int CXKcpSession::send(const char* data, int len) {
 	if (!is_connected_) {
 		return -1;
 	}
@@ -74,14 +75,14 @@ int XKcpSession::send(const char* data, int len) {
 	return send_direct(buffer, len + 1);
 }
 
-int XKcpSession::send_direct(const char* data, int len) {
+int CXKcpSession::send_direct(const char* data, int len) {
 	if (!is_connected_) {
 		return -1;
 	}
 	return ikcp_send(kcp_, data, len);
 }
 
-int XKcpSession::recv(char* data, int len) {
+int CXKcpSession::recv(char* data, int len) {
 	while (is_connected_) {
 		Sleep(5);
 		std::lock_guard<std::mutex> lock_(recvDataMutex_);
@@ -101,7 +102,7 @@ int XKcpSession::recv(char* data, int len) {
 	return -1;
 }
 
-int XKcpSession::input_data(char* buffer, int len) {
+int CXKcpSession::input_data(char* buffer, int len) {
 	if (kcp_) {
 		ikcp_input(kcp_, buffer, len);
 
@@ -118,7 +119,7 @@ int XKcpSession::input_data(char* buffer, int len) {
 // 返回0 无需其他处理
 // 返回1 表示建立连接，需要CXKcpServer 返回 accept成功
 // 返回-1 表示出错，释放掉当前对象
-int XKcpSession::dispatch(char* buffer, int len) {
+int CXKcpSession::dispatch(char* buffer, int len) {
 	unsigned char type = buffer[0];
 
 	// 新连接
@@ -169,15 +170,15 @@ int XKcpSession::dispatch(char* buffer, int len) {
 	return -1;
 }
 
-void XKcpSession::set_socket(SOCKET s) {
+void CXKcpSession::set_socket(SOCKET s) {
 	sock_ = s;
 }
 
-void XKcpSession::set_client_addr(sockaddr_in* addr) {
+void CXKcpSession::set_client_addr(sockaddr_in* addr) {
 	memcpy(&client_addr_, addr, sizeof(sockaddr_in));
 }
 
-void XKcpSession::add_recv_data(const std::string&data) {
+void CXKcpSession::add_recv_data(const std::string&data) {
 	std::lock_guard<std::mutex> lc(recvDataMutex_);
 	recvData_.push_back(data);
 }
@@ -188,7 +189,7 @@ void XKcpSession::add_recv_data(const std::string&data) {
 //---------------------------------------------------------------------
 CXKcpServer::CXKcpServer(int mode) {
 	mode_ = mode;
-	zeroSession_ = new XKcpSession(0, mode_);
+	zeroSession_ = new CXKcpSession(0, mode_);
 	zeroSession_->is_connected_ = true;
 }
 
@@ -256,7 +257,7 @@ int CXKcpServer::listen(unsigned short port) {
 
 			IUINT32 conv = ikcp_getconv(buffer);
 			// 需要重新配置conv
-			if (conv == 0) {
+			if (conv == 0 && iRet == 25) {
 				zeroSession_->set_socket(sock_);
 				zeroSession_->set_client_addr(&servAddr);
 				char newConv[5] = { 0 };
@@ -268,7 +269,7 @@ int CXKcpServer::listen(unsigned short port) {
 			}
 
 			if (mapSessions_.find(conv) == mapSessions_.end()) {
-				mapSessions_[conv] = new XKcpSession(conv, mode_);
+				mapSessions_[conv] = new CXKcpSession(conv, mode_);
 			}
 
 			// 设置socket和addr
@@ -298,7 +299,7 @@ int CXKcpServer::listen(unsigned short port) {
 	return 0;
 }
 
-XKcpSession* CXKcpServer::accept() {
+CXKcpSession* CXKcpServer::accept() {
 	while (true) {
 		Sleep(100);
 		std::lock_guard<std::mutex> lc(acceptSessionMutex_);

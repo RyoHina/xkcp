@@ -13,7 +13,7 @@
 //---------------------------------------------------------------------
 // CXKcpServer
 //---------------------------------------------------------------------
-class XKcpSession;
+class CXKcpSession;
 class CXKcpServer {
 public:
 	CXKcpServer(int mode = xkcp_mode_fast);
@@ -22,30 +22,30 @@ public:
 	int listen(unsigned short port);
 
 	// sync
-	XKcpSession* accept();
+	CXKcpSession* accept();
 
 private:
 	SOCKET sock_ = INVALID_SOCKET;
 	std::thread th_;
 	int mode_;
 
-	XKcpSession * zeroSession_;
+	CXKcpSession * zeroSession_;
 	IUINT32 sessionID_ = 1;
-	std::map<IUINT32, XKcpSession*> mapSessions_;
+	std::map<IUINT32, CXKcpSession*> mapSessions_;
 
 	std::mutex acceptSessionMutex_;
-	std::map<XKcpSession*, int> acceptSession_;
+	std::map<CXKcpSession*, int> acceptSession_;
 };
 
 
 //---------------------------------------------------------------------
 // XKcpSession
 //---------------------------------------------------------------------
-class XKcpSession {
+class CXKcpSession {
 	friend CXKcpServer;
 public:
-	XKcpSession(IUINT32 conv, int mode);
-	~XKcpSession();
+	CXKcpSession(IUINT32 conv, int mode);
+	~CXKcpSession();
 
 	int send(const char* data, int len);
 

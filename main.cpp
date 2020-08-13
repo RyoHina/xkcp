@@ -10,7 +10,7 @@ void test_server() {
 	CXKcpServer s;
 	s.listen(8888);
 	while (true) {
-		auto client = s.accept();
+		CXKcpSession* client = s.accept();
 		printf("CXKcpServer accept new socket.\r\n");
 		char buffer[1500] = { 0 };
 		hr = client->recv(buffer, sizeof(buffer));
@@ -22,7 +22,7 @@ void test_server() {
 
 		//const char* msg = "This is a server relply message!";
 		const char* msg = "12345";
-		printf("CXKcpServer send:'%s', len=%d.\r\n", msg, strlen(msg));
+		printf("CXKcpServer send:'%s', len=%d.\r\n", msg, (int)strlen(msg));
 		client->send(msg, (int)strlen(msg));
 	}
 }
