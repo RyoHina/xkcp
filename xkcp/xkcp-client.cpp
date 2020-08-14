@@ -118,15 +118,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 				(sockaddr*)&servAddr,
 				&iFromLen);
 			if (hr <= 0) break;
-			ikcp_input(kcp_, buffer, hr);
-		}
 
-		// 从kcp获取数据
-		while (true) {
-			hr = ikcp_recv(kcp_, buffer, sizeof(buffer));
-			if (hr <= 0) break;
-
-			// xkcp_new_conv
 			if (hr == 5 && buffer[0] == xkcp_new_conv) {
 				conv_ = *(IUINT32*)(buffer + 1);
 				renew_kcp();
@@ -135,10 +127,18 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 				ikcp_send(kcp_, &type, 1);
 				break;
 			}
+			ikcp_input(kcp_, buffer, hr);
+		}
+
+		// 从kcp获取数据
+		while (true) {
+			hr = ikcp_recv(kcp_, buffer, sizeof(buffer));
+			if (hr <= 0) break;
 
 			// 连接建立成功
 			if (hr == 1 && buffer[0] == xkcp_connect) {
 				is_connected_ = true;
+				printf("CXKcpClient connect conv=%d.\r\n", conv_);
 				break;
 			}
 		}
@@ -148,7 +148,7 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 		}
 	}
 
-	// ok
+	// connect ok
 	if (is_connected_) {
 		// start thread
 		th_ = std::thread([this] {

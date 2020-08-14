@@ -20,8 +20,7 @@ void test_server() {
 		}
 		printf("CXKcpServer recv:'%s', len=%d.\r\n", buffer, hr);
 
-		//const char* msg = "This is a server relply message!";
-		const char* msg = "12345";
+		const char* msg = "This is a server relply message!";
 		printf("CXKcpServer send:'%s', len=%d.\r\n", msg, (int)strlen(msg));
 		client->send(msg, (int)strlen(msg));
 	}
@@ -31,7 +30,7 @@ void test_client() {
 	// 客户端连接
 	CXKcpClient c;
 	if (0 != c.connect("127.0.0.1", 8888)) {
-		printf("connect failed.");
+		printf("connect failed.\r\n");
 		return;
 	}
 	else {
@@ -43,7 +42,7 @@ void test_client() {
 
 	char buffer[1500] = { 0 };
 	int len = c.recv(buffer, sizeof(buffer));
-	printf("CXKcpClient recv:'%s', len=%d.", buffer, len);
+	printf("CXKcpClient recv:'%s', len=%d.\r\n", buffer, len);
 }
 
 int main(int argc, char *argv[])
@@ -56,8 +55,10 @@ int main(int argc, char *argv[])
 	
 	// 创建Client线程
 	while (true) {
+		printf("****** client start *****\r\n");
 		std::thread client(test_client);
 		client.join();
+		printf("****** client end Sleep 3s. *****\r\n\r\n");
 		Sleep(3000);
 	}
 

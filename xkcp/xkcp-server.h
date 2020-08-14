@@ -29,7 +29,6 @@ private:
 	std::thread th_;
 	int mode_;
 
-	CXKcpSession * zeroSession_;
 	IUINT32 sessionID_ = 1;
 	std::map<IUINT32, CXKcpSession*> mapSessions_;
 

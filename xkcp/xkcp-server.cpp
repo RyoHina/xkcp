@@ -189,12 +189,9 @@ void CXKcpSession::add_recv_data(const std::string&data) {
 //---------------------------------------------------------------------
 CXKcpServer::CXKcpServer(int mode) {
 	mode_ = mode;
-	zeroSession_ = new CXKcpSession(0, mode_);
-	zeroSession_->is_connected_ = true;
 }
 
 CXKcpServer::~CXKcpServer() {
-	delete zeroSession_;
 	if (sock_ != INVALID_SOCKET) {
 		closesocket(sock_);
 	}
@@ -235,7 +232,6 @@ int CXKcpServer::listen(unsigned short port) {
 		while (true) {
 			Sleep(1);
 
-			zeroSession_->update();
 			for (auto& item : mapSessions_) {
 				item.second->update();
 			}
@@ -257,14 +253,18 @@ int CXKcpServer::listen(unsigned short port) {
 
 			IUINT32 conv = ikcp_getconv(buffer);
 			// 需要重新配置conv
-			if (conv == 0 && iRet == 25) {
-				zeroSession_->set_socket(sock_);
-				zeroSession_->set_client_addr(&servAddr);
+			if (conv == 0 && iRet == 25 && buffer[24] == xkcp_connect) {
 				char newConv[5] = { 0 };
 				newConv[0] = xkcp_new_conv;
 				memcpy(newConv + 1, &sessionID_, 4);
 				sessionID_++;
-				zeroSession_->send_direct(newConv, 5);
+
+				sendto(sock_,
+					(char*)newConv,
+					5,
+					0,
+					(sockaddr*)&(servAddr),
+					sizeof(sockaddr_in));
 				continue;
 			}
 
