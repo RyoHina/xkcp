@@ -8,10 +8,17 @@
 void test_server() {
 	int hr;
 	CXKcpServer s;
-	s.listen(8888);
+	if (0 != s.listen(8888)) {
+		printf("CXKcpServer listen failed.\r\n");
+		return;
+	}
+	else {
+		printf("CXKcpServer listen 0.0.0.0.:8888 OK.\r\n");
+	}
+
 	while (true) {
 		CXKcpSession* client = s.accept();
-		printf("CXKcpServer accept new socket.\r\n");
+		printf("CXKcpServer accepted new kcp session.\r\n");
 		char buffer[1500] = { 0 };
 		hr = client->recv(buffer, sizeof(buffer));
 		if (hr <= 0) {
@@ -52,7 +59,7 @@ int main(int argc, char *argv[])
 
 	// 创建Server线程
 	std::thread server(test_server);
-	
+
 	// 创建Client线程
 	while (true) {
 		printf("****** client start *****\r\n");

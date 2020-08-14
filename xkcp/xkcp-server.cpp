@@ -269,6 +269,17 @@ int CXKcpServer::listen(unsigned short port) {
 			IUINT32 conv = ikcp_getconv(buffer);
 			// 需要重新配置conv
 			if (conv == 0 && iRet == IKCP_OVERHEAD + 1 && buffer[24] == xkcp_connect) {
+				// 跑了一大圈越界了，这种极端情况需要考虑么？！！！
+				if (sessionID_ <= 0) {
+					// conv==0表示特殊用途，用以分配conv
+					if (sessionID_ == 0) {
+						sessionID_++;
+					}
+
+					while (mapSessions_.find(sessionID_) != mapSessions_.end())
+						sessionID_++;
+				}
+
 				char newConv[5] = { 0 };
 				newConv[0] = xkcp_new_conv;
 				memcpy(newConv + 1, &sessionID_, 4);
