@@ -86,20 +86,27 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 	server_addr_.sin_addr.S_un.S_addr = ::inet_addr(ip);
 
 	// 发送连接数据
-	char type = xkcp_connect;
+	const char type = xkcp_connect;
 	ikcp_send(kcp_, &type, 1);
 
 	int hr;
 	char buffer[1500] = { 0 };
-	DWORD dwConnectTimeout = timeGetTime() + connect_timeout_ms_;
+	DWORD retry_timeout = timeGetTime();
+	DWORD connect_timeout = retry_timeout + connect_timeout_ms_;
 	while (true) {
 		Sleep(3);
 		DWORD now = timeGetTime();
 		// connect timeout~~
-		if (now >= dwConnectTimeout) {
+		if (now >= connect_timeout) {
 			renew_kcp();
 			closesocket(sock_);
 			return -1;
+		}
+
+		// 每1秒试一次，直到超时
+		if (now >= retry_timeout + 1000) {
+			retry_timeout = now;
+			ikcp_send(kcp_, &type, 1);
 		}
 
 		if (ikcp_check(kcp_, now) > now) {
@@ -123,7 +130,6 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 				conv_ = *(IUINT32*)(buffer + 1);
 				renew_kcp();
 				// 重新发送连接数据
-				char type = xkcp_connect;
 				ikcp_send(kcp_, &type, 1);
 				break;
 			}
