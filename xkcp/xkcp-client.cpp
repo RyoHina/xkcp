@@ -138,7 +138,6 @@ int CXKcpClient::connect(const char* ip, unsigned short port) {
 			// 连接建立成功
 			if (hr == 1 && buffer[0] == xkcp_connect) {
 				is_connected_ = true;
-				printf("CXKcpClient connect conv=%d.\r\n", conv_);
 				break;
 			}
 		}
@@ -254,4 +253,8 @@ void CXKcpClient::close() {
 		closesocket(sock_);
 		sock_ = INVALID_SOCKET;
 	}
+}
+
+IUINT32 CXKcpClient::get_connected_conv() {
+	return conv_;
 }

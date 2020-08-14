@@ -20,6 +20,7 @@ public:
 	int recv(char* data, int len);
 	void close();
 
+	IUINT32 get_connected_conv();
 private:
 	SOCKET sock_ = INVALID_SOCKET;
 	sockaddr_in server_addr_;

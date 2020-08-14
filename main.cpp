@@ -34,7 +34,7 @@ void test_client() {
 		return;
 	}
 	else {
-		printf("CXKcpClient connect OK.\r\n");
+		printf("CXKcpClient connect OK, conv=%d.\r\n", c.get_connected_conv());
 	}
 
 	printf("CXKcpClient send 'hello', len=5.\r\n");
