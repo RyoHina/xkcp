@@ -51,11 +51,6 @@ CXKcpClient::CXKcpClient(int mode) {
 }
 
 CXKcpClient::~CXKcpClient() {
-	if (kcp_ && is_connected_) {
-		char disconnect = xkcp_disconnect;
-		ikcp_send(kcp_, &disconnect, 1);
-		Sleep(15);
-	}
 	close();
 }
 
@@ -251,6 +246,12 @@ int CXKcpClient::recv(char* data, int len) {
 }
 
 void CXKcpClient::close() {
+	if (kcp_ && is_connected_) {
+		char disconnect = xkcp_disconnect;
+		ikcp_send(kcp_, &disconnect, 1);
+		Sleep(15);
+	}
+
 	is_connected_ = false;
 	if (th_.joinable()) {
 		th_.join();
