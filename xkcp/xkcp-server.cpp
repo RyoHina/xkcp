@@ -56,9 +56,11 @@ CXKcpSession::~CXKcpSession() {
 	}
 }
 
-void CXKcpSession::update() {
+void CXKcpSession::update(DWORD now) {
+	assert(lastRecvTimestamp_ > 0);
+	assert(is_connected_);
+	assert(kcp_);
 	if (kcp_ && is_connected_) {
-		auto now = timeGetTime();
 		if (ikcp_check(kcp_, now) > now) {
 			return;
 		}
@@ -119,6 +121,9 @@ int CXKcpSession::recv(char* data, int len) {
 
 int CXKcpSession::input_data(char* buffer, int len) {
 	if (kcp_) {
+		if (lastRecvTimestamp_ == 0) {
+			lastRecvTimestamp_ = timeGetTime();
+		}
 		ikcp_input(kcp_, buffer, len);
 
 		char buffer[1500] = { 0 };
@@ -245,10 +250,11 @@ int CXKcpServer::listen(unsigned short port) {
 	// 开启线程, 处理数据收发
 	th_ = std::thread([this] {
 		while (true) {
-			Sleep(1);
+			Sleep(3);
 
+			auto now = timeGetTime();
 			for (auto& item : mapSessions_) {
-				item.second->update();
+				item.second->update(now);
 			}
 
 			char buffer[1500] = {};

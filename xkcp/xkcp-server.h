@@ -51,7 +51,7 @@ public:
 	int recv(char* data, int len);
 
 private:
-	void update();
+	void update(DWORD now);
 	void set_socket(SOCKET s);
 	void set_client_addr(sockaddr_in* addr);
 
@@ -62,6 +62,7 @@ private:
 	// 返回-1 表示出错，断掉连接，释放掉当前对象
 	int dispatch(char* buffer, int len);
 
+	DWORD lastRecvTimestamp_ = 0;
 	bool is_connected_ = false;
 	ikcpcb *kcp_ = nullptr;
 
