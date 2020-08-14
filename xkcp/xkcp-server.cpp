@@ -1,5 +1,7 @@
 ﻿#include "xkcp-server.h"
 
+// 声明
+extern "C" const IUINT32 IKCP_OVERHEAD;
 
 //---------------------------------------------------------------------
 // XKcpSession
@@ -70,21 +72,29 @@ int CXKcpSession::send(const char* data, int len) {
 	}
 
 	// sync if too many send package
-	while (ikcp_waitsnd(kcp_) >= kcp_->snd_wnd * 4) {
+	while (ikcp_waitsnd(kcp_) >= (int)kcp_->snd_wnd * 4) {
 		Sleep(3);
 	}
 
+	// 保证ikcp_send不再分片
 	char buffer[1500] = { 0 };
-	buffer[0] = xkcp_msg;
-	memcpy(buffer + 1, data, len);
-	return send_direct(buffer, len + 1);
-}
+	int mss = kcp_->mss - 1;
+	int pos = 0;
+	while (len >= 0) {
+		if (len <= mss) {
+			buffer[0] = xkcp_msg;
+			memcpy(buffer + 1, data, len);
+			return ikcp_send(kcp_, buffer, len + 1);
+		}
 
-int CXKcpSession::send_direct(const char* data, int len) {
-	if (!is_connected_) {
-		return -1;
+		buffer[0] = xkcp_msg;
+		memcpy(buffer + 1, data + pos, mss);
+		ikcp_send(kcp_, buffer, mss);
+
+		len -= mss;
+		pos += mss;
 	}
-	return ikcp_send(kcp_, data, len);
+	return 0;
 }
 
 int CXKcpSession::recv(char* data, int len) {
@@ -138,7 +148,7 @@ int CXKcpSession::dispatch(char* buffer, int len) {
 
 		is_connected_ = true;
 		char conn = xkcp_connect;
-		send_direct(&conn, 1);
+		ikcp_send(kcp_, &conn, 1);
 		return 1;
 	}
 
@@ -156,7 +166,7 @@ int CXKcpSession::dispatch(char* buffer, int len) {
 			return -1;
 		}
 		unsigned char conn = xkcp_heart_beat;
-		send_direct((const char*)&conn, 1);
+		ikcp_send(kcp_, (const char*)&conn, 1);
 		return 0;
 	}
 
@@ -251,14 +261,14 @@ int CXKcpServer::listen(unsigned short port) {
 				0,
 				(sockaddr*)&servAddr,
 				&iFromLen);
-			// IKCP_OVERHEAD == 24 bytes
+			assert(IKCP_OVERHEAD == 24);
 			if (iRet < 24) {
 				continue;
 			}
 
 			IUINT32 conv = ikcp_getconv(buffer);
 			// 需要重新配置conv
-			if (conv == 0 && iRet == 25 && buffer[24] == xkcp_connect) {
+			if (conv == 0 && iRet == IKCP_OVERHEAD + 1 && buffer[24] == xkcp_connect) {
 				char newConv[5] = { 0 };
 				newConv[0] = xkcp_new_conv;
 				memcpy(newConv + 1, &sessionID_, 4);

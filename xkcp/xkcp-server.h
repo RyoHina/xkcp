@@ -55,7 +55,6 @@ private:
 	void set_socket(SOCKET s);
 	void set_client_addr(sockaddr_in* addr);
 
-	int send_direct(const char* data, int len);
 	int input_data(char* buffer, int len);
 
 	// 返回0 无需其他处理

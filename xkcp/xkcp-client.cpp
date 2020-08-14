@@ -201,14 +201,29 @@ int CXKcpClient::send(const char* data, int len) {
 	}
 
 	// sync if too many send package
-	while (ikcp_waitsnd(kcp_) >= kcp_->snd_wnd * 4) {
+	while (ikcp_waitsnd(kcp_) >= (int)kcp_->snd_wnd * 4) {
 		Sleep(3);
 	}
 
+	// 保证ikcp_send不再分片
 	char buffer[1500] = { 0 };
-	buffer[0] = xkcp_msg;
-	memcpy(buffer + 1, data, len);
-	return ikcp_send(kcp_, buffer, len + 1);
+	int mss = kcp_->mss - 1;
+	int pos = 0;
+	while (len >= 0) {
+		if (len <= mss) {
+			buffer[0] = xkcp_msg;
+			memcpy(buffer + 1, data, len);
+			return ikcp_send(kcp_, buffer, len + 1);
+		}
+
+		buffer[0] = xkcp_msg;
+		memcpy(buffer + 1, data + pos, mss);
+		ikcp_send(kcp_, buffer, mss);
+
+		len -= mss;
+		pos += mss;
+	}
+	return 0;
 }
 
 int CXKcpClient::recv(char* data, int len) {
