@@ -51,6 +51,11 @@ CXKcpClient::CXKcpClient(int mode) {
 }
 
 CXKcpClient::~CXKcpClient() {
+	if (kcp_ && is_connected_) {
+		char disconnect = xkcp_disconnect;
+		ikcp_send(kcp_, &disconnect, 1);
+		Sleep(15);
+	}
 	close();
 }
 
