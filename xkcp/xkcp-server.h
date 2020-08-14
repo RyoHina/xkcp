@@ -21,7 +21,7 @@ public:
 
 	int listen(unsigned short port);
 
-	// sync
+	// sync functions
 	CXKcpSession* accept();
 
 private:
@@ -46,9 +46,8 @@ public:
 	CXKcpSession(IUINT32 conv, int mode);
 	~CXKcpSession();
 
+	// sync functions
 	int send(const char* data, int len);
-
-	// sync
 	int recv(char* data, int len);
 
 private:
