@@ -121,9 +121,7 @@ int CXKcpSession::recv(char* data, int len) {
 
 int CXKcpSession::input_data(char* buffer, int len) {
 	if (kcp_) {
-		if (lastRecvTimestamp_ == 0) {
-			lastRecvTimestamp_ = timeGetTime();
-		}
+		lastRecvTimestamp_ = timeGetTime();
 		ikcp_input(kcp_, buffer, len);
 
 		char buffer[1500] = { 0 };
@@ -134,7 +132,6 @@ int CXKcpSession::input_data(char* buffer, int len) {
 	}
 	return 0;
 }
-
 
 // 返回0 无需其他处理
 // 返回1 表示建立连接，需要CXKcpServer 返回 accept成功
