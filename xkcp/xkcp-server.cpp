@@ -69,6 +69,11 @@ int CXKcpSession::send(const char* data, int len) {
 		return -1;
 	}
 
+	// sync if too many send package
+	while (ikcp_waitsnd(kcp_) >= kcp_->snd_wnd * 4) {
+		Sleep(3);
+	}
+
 	char buffer[1500] = { 0 };
 	buffer[0] = xkcp_msg;
 	memcpy(buffer + 1, data, len);
